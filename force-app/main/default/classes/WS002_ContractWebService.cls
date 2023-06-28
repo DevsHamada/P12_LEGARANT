@@ -3,22 +3,20 @@ global class WS002_ContractWebService {
     
     @HttpPost
     global static ID createContract(ContractDTO contractDto) {
-        {
-            // Création d'un nouveau contract dans Salesforce
-            contract newContract = new contract();
-            newContract.accountId = ContractDTO.accountId;
-            newContract.contractTerm = ContractDTO.contractTerm;
-            newContract.status = ContractDTO.status;
-            newContract.startDate = ContractDTO.startDate;
-            insert newContract;
-            
-            // Récupération de l'ID du nouveau contract créé dans Salesforce
-            ContractDTO.salesforceId = newContract.Id;
-        }
-        // Renvoie l'ID Salesforce du contract mis à jour
-        return ContractDTO.salesforceId;
+        // Création d'un nouveau contrat dans Salesforce
+        Contract newContract = new Contract();
+        newContract.AccountId = contractDto.accountId;
+        newContract.ContractTerm = contractDto.contractTerm;
+        newContract.StartDate = contractDto.startDate;
+        insert newContract;
         
+        // Récupération de l'ID du nouveau contrat créé dans Salesforce
+        contractDto.salesforceId = newContract.Id;
+        
+        // Renvoie l'ID Salesforce du contrat créé
+        return contractDto.salesforceId;
     }
+    
     
     @HttpPut
     global static void updateContract() {
@@ -35,8 +33,13 @@ global class WS002_ContractWebService {
         
         // Parcours des clés du map de paramètres
         for (String fieldName : params.keySet()) {
-            // Mise à jour des champs du contrat avec les nouvelles valeurs
-            thisContract.put(fieldName, params.get(fieldName));
+        // Vérification du champ StartDate et conversion de la chaîne de caractères en Date
+            if (fieldName == 'startDate') {
+                thisContract.StartDate = Date.valueOf(String.valueOf(params.get(fieldName)));
+            } else {
+                // Mise à jour des autres champs du contrat avec les nouvelles valeurs
+                thisContract.put(fieldName, params.get(fieldName));
+            }
         }
         
         // Mise à jour du contrat dans Salesforce
@@ -45,11 +48,11 @@ global class WS002_ContractWebService {
     
     // DTO pour les contrats
     global class ContractDTO {
-        global id salesforceId;
         global id accountId;
         global Integer contractTerm;
-        global String status;
         global Date startDate;
+        global id salesforceId;
+
         
         // Autres champs du contrat si nécessaire
     }

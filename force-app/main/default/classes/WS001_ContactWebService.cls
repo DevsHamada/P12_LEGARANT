@@ -4,11 +4,11 @@ global class WS001_ContactWebService {
     
     @HttpPost
     global static ID createContact(ContactDTO contactDto) {
-        Contact existingContact = [SELECT Id FROM Contact WHERE Email = :contactDto.email LIMIT 1];
+        List<Contact> matchingContacts = [SELECT Id FROM Contact WHERE Email = :contactDto.email LIMIT 1];
         
-        if (existingContact != null) {
-            // Mise à jour de l'ID de Salesforce dans le CRM AXG
-            contactDto.salesforceId = existingContact.Id;
+        if (matchingContacts.size() > 0) {
+            // Mise à jou de l'ID de Salesforce dans le CRM AXG
+            contactDto.salesforceId = matchingContacts[0].Id;
         } else {
             // Création d'un nouveau contact dans Salesforce
             Contact newContact = new Contact();
@@ -20,10 +20,10 @@ global class WS001_ContactWebService {
             // Récupération de l'ID du nouveau contact créé dans Salesforce
             contactDto.salesforceId = newContact.Id;
         }
-        // Renvoie l'ID Salesforce du contact mis à jour
+        // Renvoie l'ID Salesforce du contact mis à jour ou créé
         return contactDto.salesforceId;
-
     }
+    
     
     @HttpPut
     global static ID  updateContact() {
