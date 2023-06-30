@@ -19,21 +19,28 @@ global class WS002_ContractWebService {
     
     
     @HttpPut
-    global static void updateContract() {
+    global static String updateContract() {
         RestRequest request = RestContext.request;
     
         // Extraction de l'ID du contrat à partir de l'URL de la requête
-        String contractId = request.requestURI.substring(request.requestURI.lastIndexOf('/')+1);
+        String contractId = request.requestURI.substring(request.requestURI.lastIndexOf('/') + 1);
     
         // Récupération du contrat correspondant dans Salesforce en utilisant l'ID fourni
-        Contract thisContract = [SELECT Id FROM Contract WHERE Id = :contractId];
+        List<Contract> matchingContracts = [SELECT Id FROM Contract WHERE Id = :contractId];
+        if (matchingContracts.isEmpty()) {
+            // Cas : ID non existant
+            // Retourner un message d'erreur spécifique
+            return 'Contract with ID ' + contractId + ' does not exist';
+        }
+    
+        Contract thisContract = matchingContracts[0];
     
         // Désérialisation des données de la requête dans un map de paramètres
-        Map<String, Object> params = (Map<String, Object>) JSON.deserializeUntyped(request.requestbody.tostring());
-        
+        Map<String, Object> params = (Map<String, Object>) JSON.deserializeUntyped(request.requestBody.toString());
+    
         // Parcours des clés du map de paramètres
         for (String fieldName : params.keySet()) {
-        // Vérification du champ StartDate et conversion de la chaîne de caractères en Date
+            // Vérification du champ StartDate et conversion de la chaîne de caractères en Date
             if (fieldName == 'startDate') {
                 thisContract.StartDate = Date.valueOf(String.valueOf(params.get(fieldName)));
             } else {
@@ -41,10 +48,13 @@ global class WS002_ContractWebService {
                 thisContract.put(fieldName, params.get(fieldName));
             }
         }
-        
+    
         // Mise à jour du contrat dans Salesforce
         update thisContract;
+    
+        return 'Contract updated successfully';
     }
+    
     
     // DTO pour les contrats
     global class ContractDTO {
