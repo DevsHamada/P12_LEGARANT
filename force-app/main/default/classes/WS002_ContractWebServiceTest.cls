@@ -34,7 +34,6 @@ private class WS002_ContractWebServiceTest {
     static void testUpdateContract() {
 
         ID account = createNewAccount();
-        
 
         // Création d'un contrat de test dans Salesforce
         Contract testContract = new Contract();
